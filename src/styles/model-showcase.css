@@ -1,7 +1,8 @@
 /**
  * Homepage "Our Models" showcase. Plain CSS rather than utilities: the 992px
  * breakpoint, container query units and the hover/pointer media query all
- * read more clearly here. Sizes are px to match the Lotus global site.
+ * read more clearly here. Sizes are px, measured from the "Our models" cards
+ * on lotuscars.com/en-AE (2026-10-30).
  */
 
 .model-showcase {
@@ -10,14 +11,15 @@
 }
 
 .model-showcase__header {
-  margin-block-end: 30px;
+  margin-block-end: 72px;
   text-align: center;
 }
+/* Overpass Light, not the headline face. */
 .model-showcase__title {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 300;
-  line-height: 1.2;
-  letter-spacing: 0.2em;
+  line-height: 1.1;
+  letter-spacing: 2px;
 }
 .model-showcase__subtitle {
   margin-block-start: 12px;
@@ -37,9 +39,7 @@
 
 .model-card {
   position: relative;
-  aspect-ratio: 3 / 4;
-  min-height: 420px;
-  border-radius: 4px;
+  aspect-ratio: 324 / 539;
   overflow: hidden;
   transition: flex-grow 0.3s ease;
 }
@@ -58,11 +58,7 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 24px 16px;
-  /* Dark from the bottom for the specs and buttons, a light shade at the top
-     for the wordmark. */
-  background:
-    linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.45) 35%, transparent 65%),
-    linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 25%);
+  /* No overlay: as on the global site, the photos are darkened at the bottom. */
 }
 
 .model-card__name {
@@ -92,12 +88,26 @@
 .model-card__value {
   font-size: min(26px, 21cqi);
   font-weight: 300;
-  line-height: 1.2;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+/* The rolling digits use a one-line window here, not the default 1.2. */
+.model-card__value .flip-number {
+  line-height: 1;
+}
+/* Each digit gets a fixed 0.75em slot, which spaces the numbers out as on the global site. */
+.model-card__value .flip-digit {
+  width: 0.75em;
+  height: 1em;
+  text-align: center;
+}
+.model-card__value .flip-strip {
+  transform: translateY(calc(var(--d, 0) * -1em));
 }
 .model-card__label {
   margin-block-start: 8px;
   font-size: 12px;
+  line-height: 1.4;
   color: rgb(255 255 255 / 0.7);
 }
 /* Blank line matching the partner card's secondary unit; only needed while
@@ -109,14 +119,33 @@
 .model-card__actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
-/* The site outline border (#333) disappears against the photo. */
-.model-card .btn-outline {
-  border-color: rgb(255 255 255 / 0.6);
+.model-card__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  padding-inline: 16px;
+  border: 1px solid;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  /* The global site's yellow, which also matches the wordmarks. */
+  border-color: #fdef00;
+  background-color: #fdef00;
+  color: #000;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
-.model-card .btn-outline:hover {
-  border-color: #ffdf00;
+.model-card__btn:hover {
+  border-color: #fff;
+  background-color: #fff;
+}
+.model-card__btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 @media (min-width: 992px) {
@@ -130,10 +159,11 @@
     margin-inline: auto;
   }
   .model-showcase__header {
-    margin-block-end: 56px;
+    margin-block-end: 88px;
   }
   .model-showcase__title {
-    font-size: 40px;
+    font-size: 56px;
+    letter-spacing: 3px;
   }
 
   .model-grid {
@@ -168,7 +198,7 @@
   /* A full 26px line even when the value has stepped down, so a 3-spec card
      stays level with a 2-spec partner. */
   .model-card__value {
-    min-height: calc(26px * 1.2);
+    min-height: 26px;
   }
   .model-card__actions > * {
     flex: 1 1 0;

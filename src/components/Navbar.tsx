@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useHeaderScroll } from '@/hooks/use-header-scroll'
 import type { MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Globe, X } from 'lucide-react'
@@ -28,8 +29,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [subKey, setSubKey] = useState<string | null>(null)
   const [subOpen, setSubOpen] = useState(false)
-  const [solid, setSolid] = useState(false)
-  const [hidden, setHidden] = useState(false)
+  const { solid, hidden } = useHeaderScroll()
 
   const drawerRef = useRef<HTMLElement>(null)
   const menuBtn = useRef<HTMLButtonElement>(null)
@@ -37,20 +37,6 @@ export default function Navbar() {
   const backBtn = useRef<HTMLButtonElement>(null)
   // The model button that opened the sub pane; Back returns focus to it.
   const subTrigger = useRef<HTMLButtonElement | null>(null)
-
-  // Solid past 80px; hidden while scrolling down past 200px, back on scroll up.
-  useEffect(() => {
-    let lastY = window.scrollY
-    const onScroll = () => {
-      const y = window.scrollY
-      setSolid(y > 80)
-      if (y !== lastY) setHidden(y > 200 && y > lastY)
-      lastY = y
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const close = () => {
     subTrigger.current = null

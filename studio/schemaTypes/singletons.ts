@@ -558,4 +558,5 @@ export const SINGLETON_TYPES = new Set<string>([
   testDrivePage.name,
   'offersPage',
   ourNetworkPage.name,
+  'storyNavigation',
 ])

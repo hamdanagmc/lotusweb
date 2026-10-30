@@ -4,6 +4,7 @@ import MissingContent from '@/components/common/MissingContent'
 import SanityImage from '@/components/common/SanityImage'
 import { useLocale } from '@/i18n/LocaleProvider'
 import { cn } from '@/lib/utils'
+import { buildSrcSet } from '@/sanity/image'
 import type { Figure, RangeSectionData } from '@/sanity/types'
 import FlipNumber from './FlipNumber'
 import '@/styles/model-showcase.css'
@@ -13,6 +14,7 @@ export interface ModelCardData {
   name: string
   logo?: string
   image?: Figure | null
+  mobileImage?: Figure | null
   intro: string
   powertrain: string
   price: string
@@ -54,12 +56,18 @@ function ModelCard({ card, pairHasSecondary }: { card: ModelCardData; pairHasSec
 
   return (
     <article ref={ref} className="model-card">
-      <SanityImage
-        image={card.image}
-        fallbackAlt={card.name}
-        sizes="(min-width: 992px) 45vw, 100vw"
-        className="model-card__img"
-      />
+      {/* Phones get the portrait crop when there is one, as on the Lotus global site. */}
+      <picture>
+        {card.mobileImage?.asset ? (
+          <source media="(max-width: 991px)" srcSet={buildSrcSet(card.mobileImage)} sizes="100vw" />
+        ) : null}
+        <SanityImage
+          image={card.image}
+          fallbackAlt={card.name}
+          sizes="(min-width: 992px) 45vw, 100vw"
+          className="model-card__img"
+        />
+      </picture>
       <div className="model-card__content">
         <div className="text-center">
           <h3 className="model-card__name font-display uppercase">
@@ -119,10 +127,7 @@ function ModelCard({ card, pairHasSecondary }: { card: ModelCardData; pairHasSec
             </div>
           ) : null}
           <div className="model-card__actions">
-            <CmsLink
-              link={{ href: card.href }}
-              className="btn-primary px-6 py-3 text-center text-xs font-bold tracking-widest uppercase"
-            >
+            <CmsLink link={{ href: card.href }} className="model-card__btn">
               {card.ctaLabel}
             </CmsLink>
           </div>
@@ -146,6 +151,7 @@ export default function ModelShowcase({ data }: { data?: RangeSectionData | null
         name: t(c.displayName) || t(v.name),
         logo: v.logo ?? undefined,
         image: c.image?.asset ? c.image : v.image,
+        mobileImage: c.mobileImage,
         intro: t(c.introLine),
         powertrain: t(c.powertrainLabel),
         price:
@@ -180,7 +186,7 @@ export default function ModelShowcase({ data }: { data?: RangeSectionData | null
     <section id="range" className="model-showcase bg-black text-white">
       <div className="model-showcase__inner">
         <header className="model-showcase__header">
-          <h2 className="model-showcase__title font-display uppercase">{t(data.heading)}</h2>
+          <h2 className="model-showcase__title uppercase">{t(data.heading)}</h2>
           {t(data.subheading) ? (
             <p className="model-showcase__subtitle">{t(data.subheading)}</p>
           ) : null}

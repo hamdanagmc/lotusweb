@@ -126,6 +126,8 @@ export interface ResponsiveMedia {
   image?: Figure | null
   mobileImage?: Figure | null
   video?: string | null
+  /** Portrait loop for phones; falls back to `video`. */
+  mobileVideo?: string | null
 }
 
 export interface SectionSpacing {
@@ -168,6 +170,7 @@ export interface FullWidthVideoSection {
   _type: 'fullWidthVideo'
   _key: string
   video?: string | null
+  mobileVideo?: string | null
   controls?: boolean | null
   theme?: SectionTheme
   spacing?: SectionSpacing | null
@@ -212,7 +215,9 @@ export interface ImageTextSection {
   _key: string
   image?: Figure | null
   title?: LocaleString | null
+  titleAccent?: boolean | null
   body?: LocaleText | null
+  buttons?: CtaButton[] | null
   reverse?: boolean | null
   theme?: SectionTheme
   spacing?: SectionSpacing | null
@@ -242,6 +247,54 @@ export type VehicleSection =
   | FeatureCarouselSection
   | ImageTextSection
   | HotspotViewerSection
+
+/** Rows of cards; a card with a button link is clickable as a whole. */
+export interface CardGridSection {
+  _type: 'cardGrid'
+  _key: string
+  heading?: LocaleString | null
+  items?: {
+    _key: string
+    image?: Figure | null
+    video?: string | null
+    title?: LocaleString | null
+    body?: LocaleText | null
+    button?: CtaButton | null
+  }[] | null
+  columns?: 2 | 3 | 4 | 5 | null
+  aspect?: '3/2' | '4/3' | '1/1' | '16/9' | '2/1' | null
+  align?: 'left' | 'center' | null
+  fit?: 'cover' | 'contain' | null
+  theme?: SectionTheme
+  spacing?: SectionSpacing | null
+}
+
+export interface TimelineSection {
+  _type: 'timeline'
+  _key: string
+  heading?: LocaleString | null
+  eras?: {
+    _key: string
+    label?: string | null
+    entries?: { _key: string; year?: string | null; text?: LocaleText | null }[] | null
+  }[] | null
+  spacing?: SectionSpacing | null
+}
+
+/** Everything a page-builder body can hold (vehicle and Lotus Story pages). */
+export type PageSection = VehicleSection | CardGridSection | TimelineSection
+
+export interface StoryPageDoc {
+  title?: LocaleString | null
+  slug?: string | null
+  sections?: PageSection[] | null
+  seo?: Seo | null
+}
+
+export interface StoryNavigationDoc {
+  links?: (Link & { _key: string })[] | null
+  cta?: Link | null
+}
 
 export interface VehicleDetail extends Vehicle {
   overview?: LocaleText | null
@@ -537,6 +590,8 @@ export interface ModelCard {
   visible?: boolean | null
   vehicle?: Pick<Vehicle, '_id' | 'slug' | 'name' | 'logo' | 'image'> | null
   image?: Figure | null
+  /** Portrait crop for phones. */
+  mobileImage?: Figure | null
   displayName?: LocaleString | null
   powertrainLabel?: LocaleString | null
   introLine?: LocaleString | null

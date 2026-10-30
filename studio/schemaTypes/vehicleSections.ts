@@ -100,6 +100,13 @@ export const responsiveMedia = defineType({
       options: {accept: 'video/mp4,video/webm'},
       description: 'Optional silent loop over the image, which stays as its poster.',
     }),
+    defineField({
+      name: 'mobileVideo',
+      title: 'Mobile video (MP4)',
+      type: 'file',
+      options: {accept: 'video/mp4,video/webm'},
+      description: 'Optional portrait version for phones. Falls back to the video above.',
+    }),
   ],
 })
 
@@ -228,6 +235,13 @@ export const fullWidthVideo = defineType({
       title: 'Video (MP4)',
       type: 'file',
       options: {accept: 'video/mp4,video/webm'},
+    }),
+    defineField({
+      name: 'mobileVideo',
+      title: 'Mobile video (MP4)',
+      type: 'file',
+      options: {accept: 'video/mp4,video/webm'},
+      description: 'Optional portrait version for phones. Falls back to the video above.',
     }),
     defineField({
       name: 'controls',
@@ -364,7 +378,9 @@ export const imageText = defineType({
   fields: [
     defineField({name: 'image', title: 'Image', type: 'figure'}),
     defineField({name: 'title', title: 'Title', type: 'localeString'}),
+    defineField({name: 'titleAccent', title: 'Yellow title', type: 'boolean', initialValue: false}),
     defineField({name: 'body', title: 'Text', type: 'localeText'}),
+    buttons,
     defineField({
       name: 'reverse',
       title: 'Image on the right',

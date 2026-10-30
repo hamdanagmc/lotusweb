@@ -166,7 +166,13 @@ export const modelCard = defineType({
       name: 'image',
       title: 'Image',
       type: 'figure',
-      description: "Leave empty to use the vehicle's photo.",
+      description: "Square, e.g. 1200 × 1200, darker at the bottom so the specs read. Leave empty to use the vehicle's photo.",
+    }),
+    defineField({
+      name: 'mobileImage',
+      title: 'Mobile image',
+      type: 'figure',
+      description: 'Optional portrait version for phones, e.g. 961 × 1600. The image above is used when empty.',
     }),
     defineField({
       name: 'displayName',
@@ -216,8 +222,8 @@ export const modelCard = defineType({
       name: 'cta',
       title: 'Button',
       type: 'link',
-      description: "Leave the URL empty to link to the vehicle's page.",
-      initialValue: {label: {en: 'Explore', ar: 'اكتشف'}},
+      description: "The yellow button. Leave the URL empty to link to the vehicle's page.",
+      initialValue: {label: {en: 'Discover', ar: 'اكتشف'}},
     }),
   ],
   preview: {

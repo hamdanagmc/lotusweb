@@ -4,6 +4,7 @@ import {DocumentIcon} from '@sanity/icons/Document'
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {HomeIcon} from '@sanity/icons/Home'
 import {MenuIcon} from '@sanity/icons/Menu'
+import {BookIcon} from '@sanity/icons/Book'
 import {PinIcon} from '@sanity/icons/Pin'
 import {TagIcon} from '@sanity/icons/Tag'
 import {ThLargeIcon} from '@sanity/icons/ThLarge'
@@ -73,6 +74,20 @@ export const structure: StructureResolver = (S) => {
         ),
       list('serviceFeature', 'Service features', WrenchIcon),
       list('showroom', 'Showrooms', PinIcon),
+      S.listItem()
+        .title('Lotus Story')
+        .icon(BookIcon)
+        .child(
+          S.list()
+            .title('Lotus Story')
+            .items([
+              S.listItem()
+                .title('Pages')
+                .icon(BookIcon)
+                .child(S.documentTypeList('storyPage').title('Lotus Story pages')),
+              singleton('storyNavigation', 'Menu', BookIcon),
+            ]),
+        ),
       singleton('ourNetworkPage', 'Our network page', PinIcon),
       singleton('testDrivePage', 'Test drive page', CalendarIcon),
       S.listItem()

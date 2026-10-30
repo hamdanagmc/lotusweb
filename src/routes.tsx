@@ -8,6 +8,7 @@ import ThankYou from '@/pages/ThankYou'
 import Offers from '@/pages/Offers'
 import OfferDetail from '@/pages/OfferDetail'
 import OurNetwork from '@/pages/OurNetwork'
+import StoryPage from '@/pages/StoryPage'
 import { LOCALES, LocaleProvider } from '@/i18n/LocaleProvider'
 import ScrollManager from '@/components/common/ScrollManager'
 import type { Locale } from '@/sanity/types'
@@ -37,6 +38,8 @@ export function buildRoutes(defaultLocale: Locale): RouteObject[] {
     { path: 'offers', element: <Offers /> },
     { path: 'offers/:slug', element: <OfferDetail /> },
     { path: 'our-network', element: <OurNetwork /> },
+    { path: 'lotus-story', element: <StoryPage /> },
+    { path: 'lotus-story/:slug', element: <StoryPage /> },
     { path: '*', element: <NotFound /> },
   ]
 
@@ -67,6 +70,8 @@ export const EXPECTED_PATHS = [
   '/offers',
   '/offers/eletre-x',
   '/our-network',
+  '/lotus-story',
+  '/lotus-story/theory-1',
   '/ar',
   '/ar/',
   '/ar/vehicles/emira',
@@ -75,4 +80,6 @@ export const EXPECTED_PATHS = [
   '/ar/offers',
   '/ar/offers/eletre-x',
   '/ar/our-network',
+  '/ar/lotus-story',
+  '/ar/lotus-story/about-lotus',
 ]

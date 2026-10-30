@@ -17,6 +17,7 @@ import {
 import {footer, homePage, navigation, ourNetworkPage, siteSettings, testDrivePage} from './singletons'
 import {offer, serviceFeature, showroom, testDriveEnquiry, vehicle} from './documents'
 import {localeRichText, offerEnquiry, offersPage} from './offers'
+import {cardGrid, storyNavigation, storyPage, timeline} from './story'
 import {
   ctaButton,
   featureCarousel,
@@ -63,6 +64,8 @@ export const schemaTypes = [
   featureCarousel,
   imageText,
   hotspotViewer,
+  cardGrid,
+  timeline,
   siteSettings,
   navigation,
   homePage,
@@ -76,4 +79,6 @@ export const schemaTypes = [
   showroom,
   testDriveEnquiry,
   offerEnquiry,
+  storyPage,
+  storyNavigation,
 ]

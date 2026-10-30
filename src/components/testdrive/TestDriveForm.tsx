@@ -156,13 +156,15 @@ function ModelPicker({
                 data-invalid={invalid ? 'true' : 'false'}
                 className="sr-only"
               />
-              <span className="relative flex h-[260px] items-center justify-center overflow-hidden bg-[#f2f2f2]">
+              {/* The whole 4:3 studio shot, edge to edge, as on lotuscars.com: a
+                  square crop cut the cars' noses and tails off. */}
+              <span className="relative block aspect-[4/3] overflow-hidden bg-[#f2f2f2]">
                 <SanityImage
                   image={m.image?.asset ? m.image : m.vehicle?.image}
                   fallbackAlt={name}
-                  sizes="212px"
-                  width={424}
-                  className="aspect-square h-[81.5%] w-auto object-cover"
+                  sizes="(min-width: 640px) 360px, 80vw"
+                  width={720}
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
                 {/* Figma ticks every box; only the chosen one here, as it is a single choice. */}
                 <span

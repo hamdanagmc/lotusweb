@@ -9,6 +9,7 @@ import { ui } from '@/i18n/ui'
 import { aspectRatio } from '@/sanity/image'
 import { cn } from '@/lib/utils'
 import type {
+  CardGridSection,
   CtaButton,
   FeatureCarouselSection,
   FullWidthVideoSection,
@@ -18,13 +19,15 @@ import type {
   IntroTextSection,
   ResponsiveMedia,
   SectionSpacing,
+  PageSection,
   StatsBlockSection,
-  VehicleSection,
+  TimelineSection,
 } from '@/sanity/types'
 
 /**
- * Renders a vehicle's "Page sections" (lotuscars.com-style page builder).
- * Every block is optional-everything: a missing field renders nothing.
+ * Renders page-builder sections (lotuscars.com-style) for vehicle pages and
+ * the Lotus Story pages. Every block is optional-everything: a missing field
+ * renders nothing.
  */
 
 const SECTION_X = 'px-5 md:px-8 lg:px-[88px]'
@@ -96,6 +99,40 @@ function Cta({ button, light }: { button?: CtaButton | null; light?: boolean }) 
   )
 }
 
+/**
+ * A video; phones get the portrait cut when there is one. Picked once at load,
+ * so a phone never starts downloading the desktop file first.
+ */
+function Video({
+  src,
+  mobileSrc,
+  controls,
+  className,
+}: {
+  src?: string | null
+  mobileSrc?: string | null
+  controls?: boolean
+  className?: string
+}) {
+  const [phone] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+  )
+  const url = (phone && mobileSrc) || src || mobileSrc
+  if (!url) return null
+  return (
+    <video
+      src={url}
+      autoPlay
+      muted
+      loop
+      playsInline
+      controls={controls}
+      aria-hidden={controls ? undefined : true}
+      className={className}
+    />
+  )
+}
+
 /** Desktop/mobile image plus the optional silent video loop on top. */
 function Media({ media, priority }: { media?: ResponsiveMedia | null; priority?: boolean }) {
   const { t } = useLocale()
@@ -116,17 +153,7 @@ function Media({ media, priority }: { media?: ResponsiveMedia | null; priority?:
       {hasMobile ? (
         <SanityImage image={media.mobileImage} priority={priority} sizes="100vw" className={cn(img, 'md:hidden')} />
       ) : null}
-      {media.video ? (
-        <video
-          src={media.video}
-          autoPlay
-          muted
-          loop
-          playsInline
-          aria-hidden="true"
-          className={cn(img, 'motion-reduce:hidden')}
-        />
-      ) : null}
+      <Video src={media.video} mobileSrc={media.mobileVideo} className={cn(img, 'motion-reduce:hidden')} />
     </>
   )
 }
@@ -251,18 +278,15 @@ function Intro({ s }: { s: IntroTextSection }) {
 }
 
 function FullVideo({ s }: { s: FullWidthVideoSection }) {
-  if (!s.video) return null
+  if (!s.video && !s.mobileVideo) return null
   return (
     <section className={cn('bg-black', pad(s.spacing))}>
       {/* The brand film: silent loop; controls let the visitor take over. */}
-      <video
+      <Video
         src={s.video}
-        autoPlay
-        muted
-        loop
-        playsInline
+        mobileSrc={s.mobileVideo}
         controls={s.controls ?? false}
-        className="aspect-video w-full object-cover"
+        className={cn('w-full object-cover md:aspect-video', s.mobileVideo ? 'aspect-[9/16]' : 'aspect-video')}
       />
     </section>
   )
@@ -471,7 +495,15 @@ function ImageText({ s }: { s: ImageTextSection }) {
     >
       <div className={cn('lg:col-span-4', s.reverse ? 'lg:order-2 lg:col-start-9' : 'lg:col-start-1')}>
         {t(s.title) ? (
-          <h2 className={cn(DISPLAY, 'text-2xl leading-[1.25] lg:text-[28px] lg:leading-9')}>{t(s.title)}</h2>
+          <h2
+            className={cn(
+              DISPLAY,
+              'text-2xl leading-[1.25] lg:text-[28px] lg:leading-9',
+              s.titleAccent && 'text-lotus-yellow',
+            )}
+          >
+            {t(s.title)}
+          </h2>
         ) : null}
         {t(s.body) ? (
           <p
@@ -482,6 +514,13 @@ function ImageText({ s }: { s: ImageTextSection }) {
           >
             {t(s.body)}
           </p>
+        ) : null}
+        {s.buttons?.length ? (
+          <div className="mt-8 flex flex-wrap gap-4">
+            {s.buttons.map((b) => (
+              <Cta key={b._key} button={b} light={light} />
+            ))}
+          </div>
         ) : null}
       </div>
       {s.image?.asset ? (
@@ -652,7 +691,135 @@ function Hotspots({ s }: { s: HotspotViewerSection }) {
   )
 }
 
-export default function VehicleSections({ sections }: { sections: VehicleSection[] }) {
+const GRID_COLS = {
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+  5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
+} as const
+const GRID_ASPECT = {
+  '3/2': 'aspect-[3/2]',
+  '4/3': 'aspect-[4/3]',
+  '1/1': 'aspect-square',
+  '16/9': 'aspect-video',
+  '2/1': 'aspect-[2/1]',
+} as const
+
+/** Rows of cards. A card with a link is one link as a whole, labelled like lotuscars.com ("TYPE 12 →"). */
+function CardGrid({ s }: { s: CardGridSection }) {
+  const { t, isRtl } = useLocale()
+  const light = onWhite(s.theme)
+  const center = s.align === 'center'
+  const items = (s.items ?? []).filter((x) => x.image?.asset || x.video || t(x.title) || t(x.button?.label))
+  if (!items.length) return null
+
+  return (
+    <section className={cn(light ? 'bg-white text-lotus-black' : 'bg-black text-white', pad(s.spacing), SECTION_X)}>
+      {t(s.heading) ? (
+        <h2 className={cn(DISPLAY, 'mb-10 text-center text-xl leading-7 lg:text-[22px]')}>{t(s.heading)}</h2>
+      ) : null}
+      <ul className={cn('grid gap-x-6 gap-y-12', GRID_COLS[s.columns ?? 3] ?? GRID_COLS[3])}>
+        {items.map((item) => {
+          const label = item.button && !item.button.hidden ? t(item.button.label) : ''
+          const content = (
+            <>
+              {item.image?.asset || item.video ? (
+                <div className={cn('relative overflow-hidden', GRID_ASPECT[s.aspect ?? '3/2'] ?? GRID_ASPECT['3/2'])}>
+                  {item.image?.asset ? (
+                    <SanityImage
+                      image={item.image}
+                      sizes="(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw"
+                      fallbackAlt={t(item.title) || label}
+                      className={cn(
+                        'absolute inset-0 h-full w-full transition-transform duration-500',
+                        // Logos are transparent: the blurred placeholder would stay visible behind them.
+                        s.fit === 'contain' ? 'object-contain !bg-none' : 'object-cover',
+                        label && 'motion-safe:group-hover:scale-105',
+                      )}
+                    />
+                  ) : null}
+                  <Video src={item.video} className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden" />
+                </div>
+              ) : null}
+              <div className={cn(center && 'text-center')}>
+                {t(item.title) ? (
+                  <h3 className="mt-6 text-base font-semibold uppercase leading-6 tracking-[0.05em]">{t(item.title)}</h3>
+                ) : null}
+                {t(item.body) ? (
+                  <p
+                    className={cn(
+                      'mt-2 whitespace-pre-line text-sm font-light leading-6',
+                      light ? 'text-lotus-black/75' : 'text-white/80',
+                    )}
+                  >
+                    {t(item.body)}
+                  </p>
+                ) : null}
+                {label ? (
+                  <span className="mt-10 inline-flex items-center gap-2 text-base font-bold uppercase leading-6">
+                    {label}
+                    <span aria-hidden="true" className={cn('inline-block transition-transform group-hover:translate-x-1', isRtl && '-scale-x-100')}>
+                      {'→'}
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            </>
+          )
+          return (
+            <li key={item._key}>
+              {label && item.button?.href ? (
+                <CmsLink link={item.button} className="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lotus-yellow">
+                  {content}
+                </CmsLink>
+              ) : (
+                content
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+/** Decades of year-by-year milestones, as the lotuscars.com timeline table. */
+function Timeline({ s }: { s: TimelineSection }) {
+  const { t } = useLocale()
+  const eras = (s.eras ?? []).filter((e) => e.entries?.length)
+  if (!eras.length) return null
+  return (
+    <section className={cn('bg-black text-white', pad(s.spacing), SECTION_X)}>
+      {t(s.heading) ? (
+        <h2 className="mb-10 text-center text-lg font-normal uppercase leading-7 tracking-[0.15em] lg:text-xl">
+          {t(s.heading)}
+        </h2>
+      ) : null}
+      <div className="mx-auto max-w-[1166px] space-y-14">
+        {eras.map((era) => (
+          <div key={era._key}>
+            <h3 className="border-b-2 border-[#444] pb-3 text-center text-base font-semibold leading-6 text-lotus-yellow">
+              {era.label}
+            </h3>
+            <dl>
+              {(era.entries ?? []).map((e) => (
+                <div
+                  key={e._key}
+                  className="grid grid-cols-[56px_1fr] items-center gap-3 border-b border-[#444] px-2 py-2.5 md:grid-cols-[80px_1fr]"
+                >
+                  <dt className="text-sm leading-6 md:text-base">{e.year}</dt>
+                  <dd className="whitespace-pre-line text-sm leading-6 md:text-base">{t(e.text)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export default function VehicleSections({ sections }: { sections: PageSection[] }) {
   return (
     <>
       {sections.map((s) => {
@@ -671,6 +838,10 @@ export default function VehicleSections({ sections }: { sections: VehicleSection
             return <ImageText key={s._key} s={s} />
           case 'hotspotViewer':
             return <Hotspots key={s._key} s={s} />
+          case 'cardGrid':
+            return <CardGrid key={s._key} s={s} />
+          case 'timeline':
+            return <Timeline key={s._key} s={s} />
           default:
             return null
         }

@@ -58,6 +58,7 @@ const UI = {
     enquiryFailed: 'The enquiry was not sent. Check your connection and send again.',
     offersLoadFailed: 'Offers could not load. Check your connection and reload the page.',
     networkLoadFailed: 'Locations could not load. Check your connection and reload the page.',
+    pageLoadFailed: 'This page could not load. Check your connection and reload the page.',
   },
   ar: {
     previousOffers: 'العروض السابقة',
@@ -106,6 +107,7 @@ const UI = {
     enquiryFailed: 'لم يتم إرسال الاستفسار. تحقق من اتصالك وأرسل مجددًا.',
     offersLoadFailed: 'تعذّر تحميل العروض. تحقق من اتصالك وأعد تحميل الصفحة.',
     networkLoadFailed: 'تعذّر تحميل المواقع. تحقق من اتصالك وأعد تحميل الصفحة.',
+    pageLoadFailed: 'تعذّر تحميل هذه الصفحة. تحقق من اتصالك وأعد تحميل الصفحة.',
   },
 } as const
 

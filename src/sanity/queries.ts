@@ -23,6 +23,19 @@ const FIGURE = /* groq */ `{${FIGURE_FIELDS}}`
 
 const LINK = /* groq */ `{ label, href, external }`
 
+/** Page-builder sections: resolves every image and video a section type can hold. */
+const SECTIONS = /* groq */ `{
+  ...,
+  media{ image ${FIGURE}, mobileImage ${FIGURE}, "video": video.asset->url, "mobileVideo": mobileVideo.asset->url },
+  background{ image ${FIGURE}, mobileImage ${FIGURE}, "video": video.asset->url, "mobileVideo": mobileVideo.asset->url },
+  "video": video.asset->url,
+  "mobileVideo": mobileVideo.asset->url,
+  image ${FIGURE},
+  overline ${FIGURE},
+  items[]{ ..., image ${FIGURE}, "video": video.asset->url },
+  views[]{ ..., image ${FIGURE} }
+}`
+
 const VEHICLE = /* groq */ `{
   _id,
   "slug": slug.current,
@@ -116,6 +129,7 @@ export const SITE_QUERY = /* groq */ `{
         visible,
         "vehicle": vehicle->{ _id, "slug": slug.current, name, "logo": logo.asset->url, image ${FIGURE} },
         image ${FIGURE},
+        mobileImage ${FIGURE},
         displayName,
         powertrainLabel,
         introLine,
@@ -210,7 +224,9 @@ export const LISTEN_QUERY = /* groq */ `*[
     "footer",
     "testDrivePage",
     "offersPage",
-    "ourNetworkPage"
+    "ourNetworkPage",
+    "storyPage",
+    "storyNavigation"
   ] && !(_id in path("drafts.**"))
 ]`
 
@@ -224,16 +240,7 @@ export const VEHICLE_QUERY = /* groq */ `*[_type == "vehicle" && slug.current ==
   image ${FIGURE},
   heroImage ${FIGURE},
   heroVideo{ asset->{ url, mimeType } },
-  sections[]{
-    ...,
-    media{ image ${FIGURE}, mobileImage ${FIGURE}, "video": video.asset->url },
-    background{ image ${FIGURE}, mobileImage ${FIGURE}, "video": video.asset->url },
-    "video": video.asset->url,
-    image ${FIGURE},
-    overline ${FIGURE},
-    items[]{ ..., image ${FIGURE}, "video": video.asset->url },
-    views[]{ ..., image ${FIGURE} }
-  },
+  sections[] ${SECTIONS},
   specs[]{ _key, value, label },
   specsImage ${FIGURE},
   specsLink ${LINK},
@@ -358,5 +365,19 @@ export const OUR_NETWORK_QUERY = /* groq */ `{
     hoursLabel, hours,
     serviceHoursLabel, serviceHours,
     directionsLinkText, directionsHref
+  }
+}`
+
+/** One Lotus Story page by slug ("lotus-story" is the main page), plus the shared menu. */
+export const STORY_PAGE_QUERY = /* groq */ `{
+  "page": *[_type == "storyPage" && slug.current == $slug][0]{
+    title,
+    "slug": slug.current,
+    sections[] ${SECTIONS},
+    seo{ title, description, ogImage ${FIGURE} }
+  },
+  "nav": *[_type == "storyNavigation"][0]{
+    links[]{ _key, label, href, external },
+    cta ${LINK}
   }
 }`

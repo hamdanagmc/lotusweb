@@ -67,7 +67,7 @@ export function buildNav(site: SitePayload | null): NavConfig {
     secondary: [
       item('navOffers', '/offers'),
       item('navService', '#service'),
-      item('navStory', '#story'),
+      item('navStory', '/lotus-story'),
     ],
     utility: [item('navShowrooms', '/our-network'), item('navContact', '#contact')],
   }
