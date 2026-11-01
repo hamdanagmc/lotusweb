@@ -18,6 +18,7 @@ export interface ModelCardData {
   intro: string
   powertrain: string
   price: string
+  priceRef: string
   specs: { key: string; value: string; secondary: string; label: string; ref: string }[]
   href: string
   ctaLabel: string
@@ -86,8 +87,13 @@ function ModelCard({ card, pairHasSecondary }: { card: ModelCardData; pairHasSec
         </div>
         <div>
           {card.price ? (
-            <p className="model-card__label mb-4">
+            <p className="model-card__price">
               <bdi>{card.price}</bdi>
+              {card.priceRef ? (
+                <sup>
+                  <a href={`#disclaimer-${card.priceRef}`}>{card.priceRef}</a>
+                </sup>
+              ) : null}
             </p>
           ) : null}
           {card.specs.length > 0 ? (
@@ -97,7 +103,7 @@ function ModelCard({ card, pairHasSecondary }: { card: ModelCardData; pairHasSec
                   <div className="model-card__value">
                     <FlipNumber value={spec.value} rolled={rolled} />
                     {spec.ref ? (
-                      <sup className="ms-0.5 text-[10px]">
+                      <sup>
                         <a href={`#disclaimer-${spec.ref}`}>{spec.ref}</a>
                       </sup>
                     ) : null}
@@ -146,6 +152,7 @@ export default function ModelShowcase({ data }: { data?: RangeSectionData | null
     .map((c) => {
       const v = c.vehicle!
       const price = c.startingPrice
+      const amount = price?.amount != null ? price.amount.toLocaleString('en-US') : price?.amountText?.trim()
       return {
         id: c._key,
         name: t(c.displayName) || t(v.name),
@@ -154,10 +161,8 @@ export default function ModelShowcase({ data }: { data?: RangeSectionData | null
         mobileImage: c.mobileImage,
         intro: t(c.introLine),
         powertrain: t(c.powertrainLabel),
-        price:
-          price?.amount != null
-            ? [t(price.prefix), price.currency, price.amount.toLocaleString('en-US')].filter(Boolean).join(' ')
-            : '',
+        price: amount ? [t(price?.prefix), price?.currency, amount].filter(Boolean).join(' ') : '',
+        priceRef: price?.disclaimerRef?.trim() ?? '',
         // The unit goes through FlipNumber with the number, as the old
         // "905 HP" values did; only the digits roll.
         specs: (c.specs ?? [])
@@ -178,6 +183,8 @@ export default function ModelShowcase({ data }: { data?: RangeSectionData | null
   if (cards.length === 0) {
     return <MissingContent section={t(data.heading) || 'Our Models'} documentType="vehicle" />
   }
+
+  const notes = (data.disclaimers ?? []).map((d) => t(d)).filter(Boolean)
 
   const rows: ModelCardData[][] = []
   for (let i = 0; i < cards.length; i += 2) rows.push(cards.slice(i, i + 2))
@@ -204,6 +211,15 @@ export default function ModelShowcase({ data }: { data?: RangeSectionData | null
             </div>
           ))}
         </div>
+        {notes.length ? (
+          <ol className="model-showcase__notes">
+            {notes.map((note, i) => (
+              <li key={i} id={`disclaimer-${i + 1}`}>
+                <sup>{i + 1}</sup> <bdi>{note}</bdi>
+              </li>
+            ))}
+          </ol>
+        ) : null}
       </div>
     </section>
   )

@@ -74,6 +74,35 @@
   width: auto;
 }
 
+/* The price sits on its own line, ruled off from the specs below it. */
+.model-card__price {
+  margin-block-end: 20px;
+  padding-block-end: 20px;
+  border-block-end: 1px solid rgb(255 255 255 / 0.2);
+  font-size: 16px;
+  line-height: 1.4;
+  color: #fff;
+}
+.model-card__price sup,
+.model-card__value sup {
+  margin-inline-start: 2px;
+  font-size: 0.6em;
+}
+
+/* Footnotes for the prices and specs, under the grid. */
+.model-showcase__notes {
+  margin-block-start: 40px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 0.55);
+}
+.model-showcase__notes li + li {
+  margin-block-start: 4px;
+}
+.model-showcase__notes li:target {
+  color: #fff;
+}
+
 .model-card__specs {
   display: flex;
   gap: 16px;
@@ -194,6 +223,14 @@
   }
   .model-card__label--pair {
     display: block;
+  }
+  .model-card__price {
+    margin-block-end: 24px;
+    padding-block-end: 24px;
+    font-size: 18px;
+  }
+  .model-showcase__notes {
+    margin-block-start: 56px;
   }
   /* A full 26px line even when the value has stepped down, so a 3-spec card
      stays level with a 2-spec partner. */

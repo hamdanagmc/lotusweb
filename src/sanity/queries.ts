@@ -133,11 +133,12 @@ export const SITE_QUERY = /* groq */ `{
         displayName,
         powertrainLabel,
         introLine,
-        startingPrice{ prefix, currency, amount },
+        startingPrice{ prefix, currency, amount, amountText, disclaimerRef },
         specs[]{ _key, value, unit, secondaryUnit, label, disclaimerRef },
         cta ${LINK}
       },
-      "vehicles": vehicles[defined(@->_id)]-> ${VEHICLE}
+      "vehicles": vehicles[defined(@->_id)]-> ${VEHICLE},
+      disclaimers
     },
 
     brandHighlight{

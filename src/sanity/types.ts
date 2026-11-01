@@ -599,6 +599,10 @@ export interface ModelCard {
     prefix?: LocaleString | null
     currency?: string | null
     amount?: number | null
+    /** Shown instead of `amount` while the price is not final, e.g. "XXX,XXX". */
+    amountText?: string | null
+    /** Footnote number shown after the price. */
+    disclaimerRef?: string | null
   } | null
   specs?: ModelCardSpec[] | null
   cta?: Link | null
@@ -609,6 +613,8 @@ export interface RangeSectionData {
   subheading?: LocaleText | null
   viewAll?: Link | null
   cards?: ModelCard[] | null
+  /** Numbered notes under the cards; prices and specs link to them by number. */
+  disclaimers?: LocaleText[] | null
   /** The models in the site menu. */
   vehicles?: Vehicle[] | null
 }

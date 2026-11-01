@@ -102,6 +102,14 @@ export const rangeSection = defineType({
       description:
         'The models listed in the site menu. A vehicle whose URL extends another (emira-420-sport) is listed under it. The homepage cards are set above.',
     }),
+    defineField({
+      name: 'disclaimers',
+      title: 'Footnotes',
+      type: 'array',
+      of: [defineArrayMember({type: 'localeText'})],
+      description:
+        'Numbered 1, 2, 3… in this order under the model cards. A price or spec "Footnote number" links to its note.',
+    }),
   ],
 })
 
@@ -191,7 +199,7 @@ export const modelCard = defineType({
       name: 'startingPrice',
       title: 'Starting price',
       type: 'object',
-      description: 'Optional. Shown only when an amount is filled in.',
+      description: 'Optional. Shown when an amount (or amount as text) is filled in.',
       options: {collapsible: true, collapsed: true},
       fields: [
         defineField({
@@ -202,6 +210,18 @@ export const modelCard = defineType({
         }),
         defineField({name: 'currency', title: 'Currency', type: 'string', initialValue: 'AED'}),
         defineField({name: 'amount', title: 'Amount', type: 'number', validation: (rule) => rule.min(0)}),
+        defineField({
+          name: 'amountText',
+          title: 'Amount as text',
+          type: 'string',
+          description: 'Shown when Amount is empty, e.g. XXX,XXX while the price is not final.',
+        }),
+        defineField({
+          name: 'disclaimerRef',
+          title: 'Footnote number',
+          type: 'string',
+          description: 'Optional, e.g. 1. Shown after the price and links to that footnote under the cards.',
+        }),
       ],
     }),
     defineField({
