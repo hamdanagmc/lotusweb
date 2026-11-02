@@ -71,47 +71,49 @@ const text = (max: number) =>
     .transform(cleanText)
     .pipe(z.string().min(1, 'required').max(max, 'tooLong'))
 
+/* The fields every enquiry form shares (interestEnquiry.ts uses them too). */
+export const nameField = (max: number) => text(max).refine((v) => NAME.test(v), 'invalidName')
+export const emailField = text(200).pipe(z.string().email('invalidEmail'))
+export const phoneField = text(40).transform((v, ctx) => {
+  const phone = normalizeUaePhone(v)
+  if (!phone) ctx.addIssue({ code: 'custom', message: 'invalidPhone' })
+  return phone ?? z.NEVER
+})
+/** One of `options`, which are English names from the CMS. */
+export const optionField = (options: string[]) => text(80).refine((v) => options.includes(v), 'invalidOption')
+export const contactMethodField = z.enum(CONTACT_METHODS, { errorMap: () => ({ message: 'required' }) })
+export const consentField = z.literal(true, { errorMap: () => ({ message: 'consent' }) })
+
 /** `modelOptions` are the offer's English model names; empty means no model question. */
 export function offerEnquirySchema(modelOptions: string[] = []) {
   return z.object({
-    fullName: text(120).refine((v) => NAME.test(v), 'invalidName'),
-    email: text(200).pipe(z.string().email('invalidEmail')),
-    phone: text(40).transform((v, ctx) => {
-      const phone = normalizeUaePhone(v)
-      if (!phone) ctx.addIssue({ code: 'custom', message: 'invalidPhone' })
-      return phone ?? z.NEVER
-    }),
-    model: modelOptions.length
-      ? text(80).refine((v) => modelOptions.includes(v), 'invalidOption')
-      : z.unknown().transform(() => ''),
-    contactMethod: z.enum(CONTACT_METHODS, { errorMap: () => ({ message: 'required' }) }),
-    consent: z.literal(true, { errorMap: () => ({ message: 'consent' }) }),
+    fullName: nameField(120),
+    email: emailField,
+    phone: phoneField,
+    model: modelOptions.length ? optionField(modelOptions) : z.unknown().transform(() => ''),
+    contactMethod: contactMethodField,
+    consent: consentField,
   })
 }
 
 export type OfferEnquiryFields = z.output<ReturnType<typeof offerEnquirySchema>>
-export type FieldErrors = Partial<Record<keyof OfferEnquiryFields, FieldErrorCode>>
+export type FieldErrors<T = OfferEnquiryFields> = Partial<Record<keyof T, FieldErrorCode>>
 
 /** The first error per field. */
-export function fieldErrors(error: z.ZodError): FieldErrors {
-  const out: FieldErrors = {}
-  for (const issue of error.issues) {
-    const field = issue.path[0] as keyof OfferEnquiryFields
-    out[field] ??= issue.message as FieldErrorCode
-  }
-  return out
+export function fieldErrors<T = OfferEnquiryFields>(error: z.ZodError): FieldErrors<T> {
+  const out: Record<string, FieldErrorCode> = {}
+  for (const issue of error.issues) out[String(issue.path[0])] ??= issue.message as FieldErrorCode
+  return out as FieldErrors<T>
 }
 
 const optional = (max: number) =>
   z.string().transform(cleanText).pipe(z.string().max(max)).optional().catch(undefined)
 
 /**
- * Everything the form sends besides the visitor's answers. A malformed value
+ * Everything a form sends besides the visitor's answers. A malformed value
  * here is dropped rather than failing the lead.
  */
-export const enquiryMetaSchema = z.object({
-  // Published offer IDs have no dots: this also refuses drafts and private paths.
-  offerId: z.string().regex(/^[A-Za-z0-9_-]{1,128}$/),
+export const sourceMetaSchema = z.object({
   locale: z.enum(['en', 'ar']).catch('en'),
   source: z
     .object({
@@ -124,6 +126,11 @@ export const enquiryMetaSchema = z.object({
       referrer: optional(300),
     })
     .catch({}),
+})
+
+export const enquiryMetaSchema = sourceMetaSchema.extend({
+  // Published offer IDs have no dots: this also refuses drafts and private paths.
+  offerId: z.string().regex(/^[A-Za-z0-9_-]{1,128}$/),
 })
 
 export type EnquirySource = z.output<typeof enquiryMetaSchema>['source']

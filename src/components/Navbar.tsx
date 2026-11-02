@@ -87,6 +87,8 @@ export default function Navbar() {
   }
 
   const toggleTarget = locale === 'ar' ? 'en' : 'ar'
+  // Offered only once the other language is ticked under Site settings → Enabled languages.
+  const canSwitch = !!site?.settings?.enabledLocales?.includes(toggleTarget)
   const toggle = site?.navigation?.languageToggle
   const sub = nav.models.find((m) => m.key === subKey)
 
@@ -142,14 +144,16 @@ export default function Navbar() {
         {/* Phones: `contents` puts the language switch on the start side, so the
             logo stays centred; there isn't room for both beside it. */}
         <div className="contents sm:col-start-3 sm:row-start-1 sm:flex sm:items-center sm:justify-self-end sm:gap-[16px]">
-          <button
-            type="button"
-            onClick={() => navigate(pathFor(toggleTarget))}
-            aria-label={ui(locale, toggleTarget === 'ar' ? 'switchToArabic' : 'switchToEnglish')}
-            className="col-start-1 row-start-1 h-[40px] justify-self-start whitespace-nowrap px-[4px] text-[12px] font-bold tracking-widest transition-colors hover:text-lotus-yellow"
-          >
-            {toggle?.enLabel ?? 'EN'} / {toggle?.arLabel ?? 'عربي'}
-          </button>
+          {canSwitch ? (
+            <button
+              type="button"
+              onClick={() => navigate(pathFor(toggleTarget))}
+              aria-label={ui(locale, toggleTarget === 'ar' ? 'switchToArabic' : 'switchToEnglish')}
+              className="col-start-1 row-start-1 h-[40px] justify-self-start whitespace-nowrap px-[4px] text-[12px] font-bold tracking-widest transition-colors hover:text-lotus-yellow"
+            >
+              {toggle?.enLabel ?? 'EN'} / {toggle?.arLabel ?? 'عربي'}
+            </button>
+          ) : null}
           {nav.cta ? (
             <CmsLink
               link={nav.cta}

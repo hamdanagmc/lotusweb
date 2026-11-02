@@ -1,6 +1,12 @@
 import handler from './api/test-drive'
-import { createHandler, RATE_LIMIT, type EnquiryStore, type OfferEnquiryDoc } from './api/offer-enquiry'
+import { createHandler, type EnquiryStore, type OfferEnquiryDoc } from './api/offer-enquiry'
+import {
+  createHandler as createInterestHandler,
+  type InterestEnquiryDoc,
+  type InterestStore,
+} from './api/interest-enquiry'
 import { adapt } from './api/_lib/adapter'
+import { RATE_LIMIT } from './api/_lib/enquiry'
 import { dubaiToday, fieldErrors, normalizeUaePhone, offerEnquirySchema } from './src/lib/offerEnquiry'
 
 /**
@@ -79,6 +85,7 @@ async function main() {
   check('valid -> responds', typeof w2.status === 'number', `status ${w2.status}`)
 
   await offerEnquiryTests()
+  await interestEnquiryTests()
 
   console.log(bad ? `\n${bad} FAILURES` : '\nall API assertions passed')
   process.exit(bad ? 1 : 0)
@@ -260,4 +267,77 @@ async function offerEnquiryTests() {
   }
   await nodeRun(req as never, res as never)
   check('Node signature: valid -> 201, response ended', out.ended && out.status === 201, out.body)
+}
+
+/* ------------------------------------------------------------------ */
+/* Know more (interest) enquiries: the handler on a fake store          */
+/* ------------------------------------------------------------------ */
+
+const OPTIONS = { models: ['Eletre X', 'Emira'], topics: ['Prices and offers', 'Finance'] }
+
+const INTEREST = {
+  locale: 'ar',
+  source: { page: '/ar/know-more' },
+  model: 'Eletre X',
+  topics: ['Finance', 'Finance'],
+  firstName: 'Layla',
+  lastName: 'Al Mansoori',
+  email: 'layla@example.com',
+  phone: '050 123 4567',
+  contactMethod: 'email',
+  consent: true,
+  marketingConsent: true,
+  website: '',
+}
+
+async function interestEnquiryTests() {
+  console.log('Know more enquiry handler:')
+  const created: InterestEnquiryDoc[] = []
+  const store = (options: typeof OPTIONS | null = OPTIONS): InterestStore => ({
+    findOptions: async () => options,
+    create: async (doc) => void created.push(doc),
+  })
+  const send = async (s: InterestStore, body: unknown) => {
+    const run = createInterestHandler(s, () => new Date('2026-11-01T08:00:00Z'))
+    const response = await run(
+      new Request('https://local/api/interest-enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-forwarded-for': `10.1.0.${++ipCounter}` },
+        body: JSON.stringify(body),
+      }),
+    )
+    return { status: response.status, body: (await response.json().catch(() => ({}))) as Record<string, unknown> }
+  }
+
+  let r = await send(store(null), INTEREST)
+  check('page not published -> 503', r.status === 503)
+  r = await send(store(), { ...INTEREST, website: 'spam' })
+  check('honeypot -> 201 but nothing stored', r.status === 201 && created.length === 0)
+  r = await send(store(), { ...INTEREST, model: 'Eletre', topics: ['Bitcoin'], lastName: '', consent: false })
+  check(
+    'invalid fields -> 400 with codes',
+    r.status === 400 &&
+      JSON.stringify(r.body.fields) ===
+        JSON.stringify({ model: 'invalidOption', topics: 'invalidOption', lastName: 'required', consent: 'consent' }),
+    JSON.stringify(r.body.fields),
+  )
+  r = await send(store(), { ...INTEREST, topics: undefined })
+  check('no topics -> accepted as none', r.status === 201 && created.at(-1)?.topics.length === 0)
+
+  r = await send(store(), INTEREST)
+  const doc = created.at(-1)
+  check('valid -> 201', r.status === 201)
+  check('doc id is private (dotted path)', /^interestEnquiry\.[0-9a-f-]{36}$/.test(doc?._id ?? ''), doc?._id)
+  check(
+    'doc normalised, deduped, timestamped',
+    doc?.phone === '+971501234567' &&
+      JSON.stringify(doc.topics) === '["Finance"]' &&
+      doc.status === 'new' &&
+      doc.locale === 'ar' &&
+      doc.marketingConsent === true &&
+      doc.submittedAt === '2026-11-01T08:00:00.000Z' &&
+      doc.source.page === '/ar/know-more' &&
+      !('website' in doc),
+    JSON.stringify(doc),
+  )
 }

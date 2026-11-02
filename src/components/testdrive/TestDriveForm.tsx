@@ -20,7 +20,7 @@ export const SECTION_X = 'px-5 md:px-8 lg:px-[88px]'
 export const SECTION_HEADING =
   'font-display text-[20px] leading-8 uppercase lg:text-[24px] [--lotus-display-tracking:0.18em] rtl:[--lotus-display-tracking:normal]'
 /** Step content sits under the heading, past the number. */
-const INDENT = 'lg:ms-[60px]'
+export const INDENT = 'lg:ms-[60px]'
 
 export function StepNumber({ n }: { n: number }) {
   return (
@@ -30,7 +30,7 @@ export function StepNumber({ n }: { n: number }) {
   )
 }
 
-function StepHeader({ n, children }: { n: number; children: ReactNode }) {
+export function StepHeader({ n, children }: { n: number; children: ReactNode }) {
   return (
     <div className="flex items-start gap-5">
       <StepNumber n={n} />
@@ -92,8 +92,8 @@ export function Checkbox({
   )
 }
 
-/** Figma "Choose your model": a scrolling row of radio cards with arrows. */
-function ModelPicker({
+/** Figma "Choose your model": a scrolling row of radio cards with arrows. Also used on /know-more. */
+export function ModelPicker({
   legend,
   models,
   value,
@@ -117,6 +117,18 @@ function ModelPicker({
     ro.observe(el)
     return () => ro.disconnect()
   }, [models.length])
+
+  // Bring the chosen card into view when it sits off the edge, as a car
+  // preselected by ?model= does on a phone. Measured, so it works in RTL too.
+  useEffect(() => {
+    const el = track.current
+    const card = el?.querySelector('input:checked')?.closest('label')
+    if (!el || !card) return
+    const t = el.getBoundingClientRect()
+    const c = card.getBoundingClientRect()
+    if (c.left >= t.left - 1 && c.right <= t.right + 1) return
+    el.scrollBy({ left: isRtl ? c.right - t.right : c.left - t.left, behavior: 'smooth' })
+  }, [value, isRtl])
 
   // One card (plus the 24px gap) per click; scrollLeft runs negative in RTL.
   const scroll = (direction: 1 | -1) => {
@@ -219,12 +231,19 @@ type Errors = Partial<Record<keyof Values | 'consent' | 'form', string>>
 
 const EMPTY: Values = { model: '', centre: '', firstName: '', lastName: '', email: '', phone: '' }
 
-/** `?model=` carries a vehicle slug; prefer the card that is that vehicle itself (Eletre over Eletre X). */
-function modelForParam(models: TestDriveModel[], param?: string): string {
+/**
+ * `?model=` carries a vehicle slug; prefer the card that is that vehicle itself
+ * (Eletre over Eletre X). A variant with no card of its own (emira-420-sport)
+ * gets its base car's card.
+ */
+export function modelForParam(models: TestDriveModel[], param?: string): string {
   if (!param) return ''
   const byKey = models.find((m) => m._key === param)
   if (byKey) return byKey._key
-  const matches = models.filter((m) => m.vehicle?.slug === param)
+  const exact = models.filter((m) => m.vehicle?.slug === param)
+  const matches = exact.length
+    ? exact
+    : models.filter((m) => m.vehicle?.slug && param.startsWith(`${m.vehicle.slug}-`))
   return (matches.find((m) => !m.name?.en) ?? matches[0])?._key ?? ''
 }
 

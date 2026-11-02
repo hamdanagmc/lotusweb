@@ -14,6 +14,8 @@ export default function Footer() {
   const columns = (footer?.columns ?? []).filter(Boolean)
   const socials = (footer?.socialLinks ?? []).filter((s) => socialIcon(s.platform))
   const toggleTarget = locale === 'ar' ? 'en' : 'ar'
+  // Offered only once the other language is ticked under Site settings → Enabled languages.
+  const canSwitch = !!site?.settings?.enabledLocales?.includes(toggleTarget)
 
   return (
     <footer className="bg-lotus-black border-t border-lotus-border pt-16 pb-8 md:pt-24 md:pb-12 px-5 md:px-8 lg:px-20">
@@ -68,7 +70,7 @@ export default function Footer() {
                 )
               })}
             </div>
-            {footer?.languageToggleLabel ? (
+            {footer?.languageToggleLabel && canSwitch ? (
               <div className="pt-4">
                 <button
                   type="button"

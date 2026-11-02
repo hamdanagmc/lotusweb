@@ -58,6 +58,8 @@ export const siteSettings = defineType({
         ],
       },
       initialValue: ['en', 'ar'],
+      description:
+        'The language switch (header and footer) only offers ticked languages. Untick Arabic to hide it until the Arabic site is ready; /ar pages still open from a direct link.',
     }),
     defineField({name: 'favicon', title: 'Favicon', type: 'figure', group: 'branding'}),
     defineField({
@@ -280,6 +282,45 @@ export const footer = defineType({
 
 const label = (name: string, title: string) => defineField({name, title, type: 'localeString'})
 
+/** A car visitors can pick on the Test drive and Know more pages. */
+export const modelChoice = defineArrayMember({
+  type: 'object',
+  name: 'testDriveModel',
+  title: 'Model',
+  fields: [
+    defineField({
+      name: 'vehicle',
+      title: 'Vehicle',
+      type: 'reference',
+      to: [{type: 'vehicle'}],
+      description:
+        'Links from this car\'s pages preselect this card. Supplies the name and photo when left empty below.',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({name: 'name', title: 'Name on the card', type: 'localeString'}),
+    defineField({
+      name: 'powertrain',
+      title: 'Powertrain',
+      type: 'localeString',
+      description: 'e.g. Petrol, All-electric, Plug-in hybrid.',
+    }),
+    defineField({
+      name: 'image',
+      title: 'Photo',
+      type: 'figure',
+      description: 'Square studio shot on a light grey background.',
+    }),
+  ],
+  preview: {
+    select: {name: 'name.en', vehicleName: 'vehicle.name.en', subtitle: 'powertrain.en', image: 'image', vehicleImage: 'vehicle.image'},
+    prepare: ({name, vehicleName, subtitle, image, vehicleImage}) => ({
+      title: name || vehicleName || 'Model',
+      subtitle,
+      media: image?.asset ? image : vehicleImage,
+    }),
+  },
+})
+
 export const testDrivePage = defineType({
   name: 'testDrivePage',
   title: 'Test drive page',
@@ -321,45 +362,7 @@ export const testDrivePage = defineType({
           title: 'Models',
           type: 'array',
           description: 'The cars visitors can choose, in this order.',
-          of: [
-            defineArrayMember({
-              type: 'object',
-              name: 'testDriveModel',
-              title: 'Model',
-              fields: [
-                defineField({
-                  name: 'vehicle',
-                  title: 'Vehicle',
-                  type: 'reference',
-                  to: [{type: 'vehicle'}],
-                  description:
-                    'Links from this car\'s pages preselect this card. Supplies the name and photo when left empty below.',
-                  validation: (rule) => rule.required(),
-                }),
-                defineField({name: 'name', title: 'Name on the card', type: 'localeString'}),
-                defineField({
-                  name: 'powertrain',
-                  title: 'Powertrain',
-                  type: 'localeString',
-                  description: 'e.g. Petrol, All-electric, Plug-in hybrid.',
-                }),
-                defineField({
-                  name: 'image',
-                  title: 'Photo',
-                  type: 'figure',
-                  description: 'Square studio shot on a light grey background.',
-                }),
-              ],
-              preview: {
-                select: {name: 'name.en', vehicleName: 'vehicle.name.en', subtitle: 'powertrain.en', image: 'image', vehicleImage: 'vehicle.image'},
-                prepare: ({name, vehicleName, subtitle, image, vehicleImage}) => ({
-                  title: name || vehicleName || 'Model',
-                  subtitle,
-                  media: image?.asset ? image : vehicleImage,
-                }),
-              },
-            }),
-          ],
+          of: [modelChoice],
         }),
       ],
     }),
@@ -559,4 +562,5 @@ export const SINGLETON_TYPES = new Set<string>([
   'offersPage',
   ourNetworkPage.name,
   'storyNavigation',
+  'knowMorePage',
 ])

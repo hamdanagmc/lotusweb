@@ -247,6 +247,51 @@ export function TestDriveEnquiriesTable() {
   )
 }
 
+export function InterestEnquiriesTable() {
+  return (
+    <EnquiriesTable
+      type="interestEnquiry"
+      query={`*[_type == "interestEnquiry"] | order(submittedAt desc){
+        _id, submittedAt, model, email, phone, locale,
+        "name": firstName + " " + lastName,
+        "topics": array::join(coalesce(topics, []), ", "),
+        "status": select(status == "contacted" => "Contacted", status == "closed" => "Closed", "New"),
+        "contactMethod": select(contactMethod == "phone" => "Phone call", contactMethod == "email" => "Email", contactMethod == "whatsapp" => "WhatsApp", contactMethod),
+        "marketing": select(marketingConsent => "Yes", "No"),
+        "utmSource": source.utmSource, "utmMedium": source.utmMedium, "utmCampaign": source.utmCampaign,
+        "utmTerm": source.utmTerm, "utmContent": source.utmContent, "page": source.page, "referrer": source.referrer
+      }`}
+      columns={[
+        {key: 'submittedAt', label: 'Received', width: '150px', date: true},
+        {key: 'model', label: 'Model', width: '110px'},
+        {key: 'status', label: 'Status', width: '100px'},
+        {key: 'name', label: 'Name', width: '160px'},
+        {key: 'email', label: 'Email', width: '210px'},
+        {key: 'phone', label: 'Phone', width: '140px'},
+        {key: 'contactMethod', label: 'Contact by', width: '110px'},
+        {key: 'topics', label: 'Wants to know about', width: '220px'},
+      ]}
+      extraCsvColumns={[
+        {key: 'marketing', label: 'Marketing opt-in'},
+        {key: 'utmSource', label: 'utm_source'},
+        {key: 'utmMedium', label: 'utm_medium'},
+        {key: 'utmCampaign', label: 'utm_campaign'},
+        {key: 'utmTerm', label: 'utm_term'},
+        {key: 'utmContent', label: 'utm_content'},
+        {key: 'page', label: 'Page'},
+        {key: 'referrer', label: 'Referrer'},
+        {key: 'locale', label: 'Language'},
+      ]}
+      filters={[
+        {key: 'model', label: 'Models'},
+        {key: 'status', label: 'Statuses'},
+      ]}
+      filename="know-more-enquiries"
+      emptyText="No Know more enquiries yet. Submissions from /know-more appear here automatically."
+    />
+  )
+}
+
 export function OfferEnquiriesTable() {
   return (
     <EnquiriesTable

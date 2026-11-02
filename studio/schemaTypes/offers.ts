@@ -126,13 +126,32 @@ export const ENQUIRY_STATUSES = [
   {title: 'Closed', value: 'closed'},
 ]
 
-const CONTACT_METHODS = [
+export const CONTACT_METHODS = [
   {title: 'Phone call', value: 'phone'},
   {title: 'Email', value: 'email'},
   {title: 'WhatsApp', value: 'whatsapp'},
 ]
 
-const readOnly = (field: FieldDefinition) => ({...field, readOnly: true})
+export const readOnly = (field: FieldDefinition) => ({...field, readOnly: true})
+
+/** Campaign tags and pages an enquiry came from (the website's src/lib/utm.ts). */
+export const sourceField = readOnly(
+  defineField({
+    name: 'source',
+    title: 'Source',
+    type: 'object',
+    options: {collapsible: true},
+    fields: [
+      defineField({name: 'utmSource', title: 'utm_source', type: 'string'}),
+      defineField({name: 'utmMedium', title: 'utm_medium', type: 'string'}),
+      defineField({name: 'utmCampaign', title: 'utm_campaign', type: 'string'}),
+      defineField({name: 'utmTerm', title: 'utm_term', type: 'string'}),
+      defineField({name: 'utmContent', title: 'utm_content', type: 'string'}),
+      defineField({name: 'page', title: 'Page', type: 'string'}),
+      defineField({name: 'referrer', title: 'Referrer', type: 'string'}),
+    ],
+  }),
+)
 
 /**
  * Written by the website's /api/offer-enquiry function under a private
@@ -178,23 +197,7 @@ export const offerEnquiry = defineType({
     ),
     readOnly(defineField({name: 'consent', title: 'Agreed to be contacted', type: 'boolean'})),
     readOnly(defineField({name: 'locale', title: 'Site language', type: 'string'})),
-    readOnly(
-      defineField({
-        name: 'source',
-        title: 'Source',
-        type: 'object',
-        options: {collapsible: true},
-        fields: [
-          defineField({name: 'utmSource', title: 'utm_source', type: 'string'}),
-          defineField({name: 'utmMedium', title: 'utm_medium', type: 'string'}),
-          defineField({name: 'utmCampaign', title: 'utm_campaign', type: 'string'}),
-          defineField({name: 'utmTerm', title: 'utm_term', type: 'string'}),
-          defineField({name: 'utmContent', title: 'utm_content', type: 'string'}),
-          defineField({name: 'page', title: 'Page', type: 'string'}),
-          defineField({name: 'referrer', title: 'Referrer', type: 'string'}),
-        ],
-      }),
-    ),
+    sourceField,
     readOnly(defineField({name: 'submittedAt', title: 'Received', type: 'datetime'})),
   ],
   orderings: [

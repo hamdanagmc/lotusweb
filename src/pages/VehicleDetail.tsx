@@ -290,6 +290,12 @@ export default function VehicleDetail() {
               >
                 {ui(locale, 'bookTestDrive')}
               </Link>
+              <Link
+                to={localePath(`/know-more${data.slug ? `?model=${data.slug}` : ''}`)}
+                className="border border-white px-10 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-lotus-yellow hover:text-lotus-yellow"
+              >
+                {ui(locale, 'knowMore')}
+              </Link>
             </div>
           </div>
         </section>

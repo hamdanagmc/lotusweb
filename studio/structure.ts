@@ -2,6 +2,7 @@ import {CalendarIcon} from '@sanity/icons/Calendar'
 import {CogIcon} from '@sanity/icons/Cog'
 import {DocumentIcon} from '@sanity/icons/Document'
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
+import {InfoOutlineIcon} from '@sanity/icons/InfoOutline'
 import {HomeIcon} from '@sanity/icons/Home'
 import {MenuIcon} from '@sanity/icons/Menu'
 import {BookIcon} from '@sanity/icons/Book'
@@ -10,7 +11,11 @@ import {TagIcon} from '@sanity/icons/Tag'
 import {ThLargeIcon} from '@sanity/icons/ThLarge'
 import {WrenchIcon} from '@sanity/icons/Wrench'
 import type {StructureResolver} from 'sanity/structure'
-import {OfferEnquiriesTable, TestDriveEnquiriesTable} from './components/EnquiriesTable'
+import {
+  InterestEnquiriesTable,
+  OfferEnquiriesTable,
+  TestDriveEnquiriesTable,
+} from './components/EnquiriesTable'
 import {ENQUIRY_STATUSES} from './schemaTypes/offers'
 
 /** Sidebar layout. Singletons open straight into their one document. */
@@ -103,6 +108,35 @@ export const structure: StructureResolver = (S) => {
         .title('Enquiries table')
         .icon(EnvelopeIcon)
         .child(S.component(TestDriveEnquiriesTable).title('Test drive enquiries')),
+      singleton('knowMorePage', 'Know more page', InfoOutlineIcon),
+      S.listItem()
+        .title('Know more enquiries')
+        .icon(EnvelopeIcon)
+        .child(
+          S.list()
+            .title('Know more enquiries')
+            .items([
+              S.listItem()
+                .title('All')
+                .child(S.documentTypeList('interestEnquiry').title('All').defaultOrdering(newest)),
+              ...ENQUIRY_STATUSES.map(({title, value}) =>
+                S.listItem()
+                  .id(`interest-${value}`)
+                  .title(title)
+                  .child(
+                    S.documentTypeList('interestEnquiry')
+                      .title(title)
+                      .filter('_type == "interestEnquiry" && status == $status')
+                      .params({status: value})
+                      .defaultOrdering(newest),
+                  ),
+              ),
+              S.divider(),
+              S.listItem()
+                .title('Table and CSV export')
+                .child(S.component(InterestEnquiriesTable).title('Know more enquiries')),
+            ]),
+        ),
       S.divider(),
       singleton('navigation', 'Navigation', MenuIcon),
       singleton('footer', 'Footer', ThLargeIcon),

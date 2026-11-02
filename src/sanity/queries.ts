@@ -226,6 +226,7 @@ export const LISTEN_QUERY = /* groq */ `*[
     "testDrivePage",
     "offersPage",
     "ourNetworkPage",
+    "knowMorePage",
     "storyPage",
     "storyNavigation"
   ] && !(_id in path("drafts.**"))
@@ -267,13 +268,8 @@ export const VEHICLE_QUERY = /* groq */ `*[_type == "vehicle" && slug.current ==
   testDriveLink ${LINK}
 }`
 
-/** The test-drive page, its form copy and its thank-you page. */
-export const TEST_DRIVE_QUERY = /* groq */ `*[_type == "testDrivePage"][0]{
-  eyebrow,
-  heading,
-  intro,
-  image ${FIGURE},
-  modelStep{
+/** The cars a visitor can pick (test drive, know more). */
+const MODEL_STEP = /* groq */ `modelStep{
     heading,
     intro,
     models[defined(vehicle->_id)]{
@@ -283,7 +279,15 @@ export const TEST_DRIVE_QUERY = /* groq */ `*[_type == "testDrivePage"][0]{
       image ${FIGURE},
       "vehicle": vehicle->{ _id, "slug": slug.current, name, image ${FIGURE} }
     }
-  },
+  }`
+
+/** The test-drive page, its form copy and its thank-you page. */
+export const TEST_DRIVE_QUERY = /* groq */ `*[_type == "testDrivePage"][0]{
+  eyebrow,
+  heading,
+  intro,
+  image ${FIGURE},
+  ${MODEL_STEP},
   detailsStep{ heading },
   centreStep{ heading, intro },
   privacyStep{ heading, privacyLink ${LINK}, termsLink ${LINK} },
@@ -381,4 +385,18 @@ export const STORY_PAGE_QUERY = /* groq */ `{
     links[]{ _key, label, href, external },
     cta ${LINK}
   }
+}`
+
+/** /know-more: the interest form's page, cars, topics and labels. */
+export const KNOW_MORE_QUERY = /* groq */ `*[_type == "knowMorePage"][0]{
+  heading, intro, image ${FIGURE},
+  ${MODEL_STEP},
+  topicsStep{ heading, intro, "topics": topics[defined(en)]{ _key, en, ar } },
+  detailsStep{ heading },
+  privacyStep{ heading },
+  firstName, lastName, email, phone, phonePlaceholder,
+  contactMethod, contactPhone, contactEmail, contactWhatsapp,
+  consent, privacyLink ${LINK}, marketingConsent, submit, submitting,
+  successHeading, successBody, successCta ${LINK},
+  seo{ title, description, ogImage ${FIGURE} }
 }`

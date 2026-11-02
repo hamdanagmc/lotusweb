@@ -363,6 +363,39 @@ export interface TestDriveModel {
   vehicle?: Pick<Vehicle, '_id' | 'slug' | 'name' | 'image'> | null
 }
 
+/** /know-more, the interest form. Topic answers are sent as their English text. */
+export interface KnowMorePageDoc {
+  heading?: LocaleString | null
+  intro?: LocaleText | null
+  image?: Figure | null
+  modelStep?: TestDrivePage['modelStep']
+  topicsStep?: {
+    heading?: LocaleString | null
+    intro?: LocaleString | null
+    topics?: (LocaleString & { _key: string })[] | null
+  } | null
+  detailsStep?: { heading?: LocaleString | null } | null
+  privacyStep?: { heading?: LocaleString | null } | null
+  firstName?: LocaleString | null
+  lastName?: LocaleString | null
+  email?: LocaleString | null
+  phone?: LocaleString | null
+  phonePlaceholder?: LocaleString | null
+  contactMethod?: LocaleString | null
+  contactPhone?: LocaleString | null
+  contactEmail?: LocaleString | null
+  contactWhatsapp?: LocaleString | null
+  consent?: LocaleString | null
+  privacyLink?: Link | null
+  marketingConsent?: LocaleString | null
+  submit?: LocaleString | null
+  submitting?: LocaleString | null
+  successHeading?: LocaleString | null
+  successBody?: LocaleText | null
+  successCta?: Link | null
+  seo?: Seo | null
+}
+
 export interface TestDrivePage {
   eyebrow?: LocaleString | null
   heading?: LocaleString | null
