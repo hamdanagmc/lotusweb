@@ -16,7 +16,7 @@ import {
   OfferEnquiriesTable,
   TestDriveEnquiriesTable,
 } from './components/EnquiriesTable'
-import {ENQUIRY_STATUSES} from './schemaTypes/offers'
+import {ENQUIRY_STATUSES} from './enquiries'
 
 /** Sidebar layout. Singletons open straight into their one document. */
 export const structure: StructureResolver = (S) => {

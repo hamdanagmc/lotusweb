@@ -7,6 +7,16 @@ import {
 } from './api/interest-enquiry'
 import { adapt } from './api/_lib/adapter'
 import { RATE_LIMIT } from './api/_lib/enquiry'
+import {
+  DEFAULT_FILTERS,
+  applyFilters,
+  computeStats,
+  dashboardCsv,
+  formatDubai,
+  modelName,
+  modelOptions,
+  type EnquiryRow,
+} from './studio/enquiries'
 import { dubaiToday, fieldErrors, normalizeUaePhone, offerEnquirySchema } from './src/lib/offerEnquiry'
 
 /**
@@ -86,6 +96,7 @@ async function main() {
 
   await offerEnquiryTests()
   await interestEnquiryTests()
+  dashboardTests()
 
   console.log(bad ? `\n${bad} FAILURES` : '\nall API assertions passed')
   process.exit(bad ? 1 : 0)
@@ -340,4 +351,47 @@ async function interestEnquiryTests() {
       !('website' in doc),
     JSON.stringify(doc),
   )
+}
+
+/* ------------------------------------------------------------------ */
+/* The Studio's Enquiries dashboard: filters, counts and export          */
+/* ------------------------------------------------------------------ */
+
+function dashboardTests() {
+  console.log('Enquiries dashboard:')
+  const rows: EnquiryRow[] = [
+    { _id: 'a', _type: 'testDriveEnquiry', status: 'new', submittedAt: '2026-09-02T08:00:00Z', name: 'Old Slug', phone: '+971 50 111 2222', model: 'emira-420-sport', details: 'Dubai' },
+    { _id: 'b', _type: 'testDriveEnquiry', status: 'contacted', submittedAt: '2026-11-05T08:00:00Z', name: 'New Name', phone: '+971 50 333 4444', model: 'Emira 420 Sport', details: 'Dubai', message: 'Weekend please' },
+    { _id: 'c', _type: 'interestEnquiry', status: 'new', submittedAt: '2026-11-04T08:00:00Z', name: 'Layla Know', email: 'layla@example.com', model: 'Eletre X', details: 'Finance, Service and warranty', contactMethod: 'whatsapp', marketingConsent: true },
+    { _id: 'd', _type: 'offerEnquiry', status: 'closed', submittedAt: '2026-10-01T08:00:00Z', name: '=HYPERLINK("x")', phone: '+971501234567', model: 'eletre-x', details: 'Eletre X offer', marketingConsent: null },
+  ]
+  const ids = (list: EnquiryRow[]) => list.map((r) => r._id).join('')
+
+  check('slug and name show the same', modelName('emira-420-sport') === 'Emira 420 Sport' && modelName('Emira 420 Sport') === 'Emira 420 Sport')
+  check('model filter lists each car once', modelOptions(rows).join('|') === 'Eletre X|Emira 420 Sport', modelOptions(rows).join('|'))
+  check('newest first by default', ids(applyFilters(rows, DEFAULT_FILTERS)) === 'bcda', ids(applyFilters(rows, DEFAULT_FILTERS)))
+  check('oldest first', ids(applyFilters(rows, { ...DEFAULT_FILTERS, sort: 'oldest' })) === 'adcb')
+  check('tab limits the type', ids(applyFilters(rows, { ...DEFAULT_FILTERS, type: 'testDriveEnquiry' })) === 'ba')
+  check('status filter', ids(applyFilters(rows, { ...DEFAULT_FILTERS, status: 'new' })) === 'ca')
+  check('model filter matches slug and name', ids(applyFilters(rows, { ...DEFAULT_FILTERS, model: 'Emira 420 Sport' })) === 'ba')
+  check('search ignores case', ids(applyFilters(rows, { ...DEFAULT_FILTERS, search: 'LAYLA' })) === 'c')
+  check('search finds a number however it is spaced', ids(applyFilters(rows, { ...DEFAULT_FILTERS, search: '501112222' })) === 'a')
+  check('search reads the message', ids(applyFilters(rows, { ...DEFAULT_FILTERS, search: 'weekend' })) === 'b')
+  check('filtering leaves the source list alone', ids(rows) === 'abcd')
+
+  const stats = computeStats(rows, new Date('2026-11-06T08:00:00Z').getTime())
+  check(
+    'counts by status and last 7 days',
+    stats.total === 4 && stats.new === 2 && stats.contacted === 1 && stats.closed === 1 && stats.lastWeek === 2,
+    JSON.stringify(stats),
+  )
+  check('dates show in Dubai time', formatDubai('2026-11-05T20:30:00Z').startsWith('06 Nov 2026'), formatDubai('2026-11-05T20:30:00Z'))
+  check('bad or missing date shows nothing', formatDubai('nope') === '' && formatDubai(null) === '')
+
+  const csv = dashboardCsv(rows)
+  const lines = csv.split('\n')
+  check('export has a header and one line per enquiry', lines.length === 5 && lines[0].startsWith('"Received (Dubai time)","Type","Status"'))
+  check('export uses readable labels', lines[3].includes('"Know more","New"') && lines[3].includes('"WhatsApp"') && lines[3].includes('"Yes"'), lines[3].slice(0, 90))
+  check('export defuses spreadsheet formulas', lines[4].includes(`"'=HYPERLINK(""x"")"`), lines[4].slice(0, 80))
+  check('export keeps a phone number as it is', lines[4].includes('"+971501234567"'))
 }

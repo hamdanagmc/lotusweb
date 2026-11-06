@@ -1,7 +1,8 @@
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {InfoOutlineIcon} from '@sanity/icons/InfoOutline'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {CONTACT_METHODS, ENQUIRY_STATUSES, readOnly, sourceField} from './offers'
+import {CONTACT_METHODS, ENQUIRY_STATUSES} from '../enquiries'
+import {readOnly, sourceField} from './offers'
 import {modelChoice} from './singletons'
 
 const label = (name: string, title: string, group: string, description?: string) =>

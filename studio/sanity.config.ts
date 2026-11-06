@@ -3,6 +3,8 @@ import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes, SINGLETON_TYPES} from './schemaTypes'
 import {structure} from './structure'
+import {EnvelopeIcon} from '@sanity/icons/Envelope'
+import EnquiriesDashboard from './components/EnquiriesDashboard'
 
 export default defineConfig({
   name: 'lotus-uae',
@@ -12,6 +14,11 @@ export default defineConfig({
   dataset: 'production',
 
   plugins: [structureTool({structure}), visionTool({defaultApiVersion: '2024-10-01'})],
+
+  tools: (prev) => [
+    ...prev,
+    {name: 'enquiries', title: 'Enquiries', icon: EnvelopeIcon, component: EnquiriesDashboard},
+  ],
 
   schema: {
     types: schemaTypes,

@@ -1,6 +1,7 @@
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {TagIcon} from '@sanity/icons/Tag'
 import {defineArrayMember, defineField, defineType, type FieldDefinition} from 'sanity'
+import {CONTACT_METHODS, ENQUIRY_STATUSES} from '../enquiries'
 
 /**
  * Deliberately small: the website renders exactly these styles, lists and
@@ -119,18 +120,6 @@ export const offersPage = defineType({
   ],
   preview: {prepare: () => ({title: 'Offers page'})},
 })
-
-export const ENQUIRY_STATUSES = [
-  {title: 'New', value: 'new'},
-  {title: 'Contacted', value: 'contacted'},
-  {title: 'Closed', value: 'closed'},
-]
-
-export const CONTACT_METHODS = [
-  {title: 'Phone call', value: 'phone'},
-  {title: 'Email', value: 'email'},
-  {title: 'WhatsApp', value: 'whatsapp'},
-]
 
 export const readOnly = (field: FieldDefinition) => ({...field, readOnly: true})
 

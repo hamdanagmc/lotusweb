@@ -1,12 +1,11 @@
 import {Box, Button, Card, Flex, Select, Spinner, Stack, Text, TextInput} from '@sanity/ui'
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
+import {type CsvColumn, downloadCsv, toCsv} from '../enquiries'
 
 type Row = {_id: string} & Record<string, string | boolean | null | undefined>
 
-interface Column {
-  key: string
-  label: string
+interface Column extends CsvColumn {
   width?: string
   date?: boolean
 }
@@ -30,21 +29,6 @@ function formatDate(value: unknown) {
   if (!value) return '—'
   const date = new Date(String(value))
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString()
-}
-
-/**
- * Spreadsheets run a cell that starts with = + - @ as a formula, so a
- * visitor could plant one in a form field. Quote those, except phone numbers.
- */
-function csvCell(value: unknown) {
-  let text = value == null ? '' : String(value)
-  if (/^[=+\-@\t\r]/.test(text) && !/^\+\d+$/.test(text)) text = `'${text}`
-  return `"${text.replace(/"/g, '""')}"`
-}
-
-function toCsv(rows: Row[], columns: Column[]) {
-  const lines = rows.map((r) => columns.map((c) => csvCell(r[c.key])).join(','))
-  return [columns.map((c) => csvCell(c.label)).join(','), ...lines].join('\n')
 }
 
 /** Live table of enquiries with filters and CSV export. */
@@ -100,15 +84,7 @@ function EnquiriesTable({
     )
   }, [rows, text, selected, filters, columns])
 
-  const exportCsv = () => {
-    const csv = toCsv(visible, [...columns, ...extraCsvColumns])
-    const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8;'}))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  const exportCsv = () => downloadCsv(toCsv(visible, [...columns, ...extraCsvColumns]), filename)
 
   if (error) {
     return (

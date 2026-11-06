@@ -3,6 +3,8 @@ import {PinIcon} from '@sanity/icons/Pin'
 import {TagIcon} from '@sanity/icons/Tag'
 import {WrenchIcon} from '@sanity/icons/Wrench'
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {ENQUIRY_STATUSES} from '../enquiries'
+import {readOnly} from './offers'
 
 /** English is the fallback language on the site, so it is the one required. */
 const requireEnglish = (message: string) => (value?: {en?: string}) =>
@@ -672,25 +674,35 @@ export const showroom = defineType({
   preview: {select: {title: 'name.en', subtitle: 'address.en'}},
 })
 
-/** Written by the website's /api/test-drive function; read-only in the Studio. */
+/**
+ * Written by the website's /api/test-drive function. Only the status is meant
+ * to be edited, and it saves straight away. No status yet means new.
+ */
 export const testDriveEnquiry = defineType({
   name: 'testDriveEnquiry',
   title: 'Test drive enquiry',
   type: 'document',
   icon: EnvelopeIcon,
-  readOnly: true,
+  liveEdit: true,
   fields: [
-    defineField({name: 'fullName', title: 'Full name', type: 'string'}),
-    defineField({name: 'email', title: 'Email', type: 'string'}),
-    defineField({name: 'phone', title: 'Phone', type: 'string'}),
-    defineField({name: 'model', title: 'Model of interest', type: 'string'}),
-    defineField({name: 'location', title: 'Preferred location', type: 'string'}),
-    defineField({name: 'preferredDate', title: 'Preferred date', type: 'string'}),
-    defineField({name: 'message', title: 'Message', type: 'text', rows: 4}),
-    defineField({name: 'country', title: 'Country', type: 'string'}),
-    defineField({name: 'marketingConsent', title: 'Agreed to marketing', type: 'boolean'}),
-    defineField({name: 'locale', title: 'Submitted in language', type: 'string'}),
-    defineField({name: 'submittedAt', title: 'Submitted at', type: 'datetime'}),
+    defineField({
+      name: 'status',
+      title: 'Status',
+      type: 'string',
+      options: {list: ENQUIRY_STATUSES, layout: 'radio', direction: 'horizontal'},
+      initialValue: 'new',
+    }),
+    readOnly(defineField({name: 'fullName', title: 'Full name', type: 'string'})),
+    readOnly(defineField({name: 'email', title: 'Email', type: 'string'})),
+    readOnly(defineField({name: 'phone', title: 'Phone', type: 'string'})),
+    readOnly(defineField({name: 'model', title: 'Model of interest', type: 'string'})),
+    readOnly(defineField({name: 'location', title: 'Preferred location', type: 'string'})),
+    readOnly(defineField({name: 'preferredDate', title: 'Preferred date', type: 'string'})),
+    readOnly(defineField({name: 'message', title: 'Message', type: 'text', rows: 4})),
+    readOnly(defineField({name: 'country', title: 'Country', type: 'string'})),
+    readOnly(defineField({name: 'marketingConsent', title: 'Agreed to marketing', type: 'boolean'})),
+    readOnly(defineField({name: 'locale', title: 'Submitted in language', type: 'string'})),
+    readOnly(defineField({name: 'submittedAt', title: 'Submitted at', type: 'datetime'})),
   ],
   orderings: [
     {name: 'newest', title: 'Newest first', by: [{field: 'submittedAt', direction: 'desc'}]},
